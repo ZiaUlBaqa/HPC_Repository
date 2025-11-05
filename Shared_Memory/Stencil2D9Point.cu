@@ -37,11 +37,22 @@ __global__ void stencil(int * in, int * out)
     if (threadIdx.y == blockDim.y - 1 && globaly < N - 1)
         mem[localy + 1][localx] = in[(globaly + 1) * N + globalx];
 
-    //we have not loaded the corner most halos as they were not being used rxn scn mun wekh apna kallu kaleyaa
+    //loading the corner halo cells
+
 
     __syncthreads();
 
-    out[globaly * N + globalx] = (mem[localy][localx]+mem[localy+1][localx]+mem[localy-1][localx]+mem[localy][localx+1]+mem[localy][localx-1])/5;
+    int value = mem[localy][localx]; // self
+    int left = (globalx > 0) ? mem[localy][localx - 1] : value;
+    int right = (globalx < N - 1) ? mem[localy][localx + 1] : value;
+    int up = (globaly > 0) ? mem[localy - 1][localx] : value;
+    int down = (globaly < N - 1) ? mem[localy + 1][localx] : value;
+    out[globaly * N + globalx] = (value + left + right + up + down) / 5;
+
+    //the above portion has been done because if we are at the left most block, there is no 
+    //more data to be left on left halo
+    //if we leave them uninitialized tis will lead to garbage val, which is why we have to use custom values
+    //the cells own value for this case
 
 
 }
