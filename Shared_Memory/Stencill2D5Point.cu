@@ -41,7 +41,15 @@ __global__ void stencil(int * in, int * out)
 
     __syncthreads();
 
-    out[globaly * N + globalx] = (mem[localy][localx]+mem[localy+1][localx]+mem[localy-1][localx]+mem[localy][localx+1]+mem[localy][localx-1])/5;
+    if (globalx > 0 && globalx < N - 1 &&
+        globaly > 0 && globaly < N - 1) {
+        out[globaly * N + globalx] =
+            (mem[localy][localx] +
+            mem[localy + 1][localx] +
+            mem[localy - 1][localx] +
+            mem[localy][localx + 1] +
+            mem[localy][localx - 1]) / 5;
+    }
 
 
 }
